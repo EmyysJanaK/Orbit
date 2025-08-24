@@ -133,4 +133,5 @@ public class EmployeeController {
         Long count = employeeService.getEmployeeCountByDepartment(department);
         return ResponseEntity.ok(count);
     }
+
 }
