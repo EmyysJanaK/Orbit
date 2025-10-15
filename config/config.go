@@ -12,6 +12,7 @@ type Config struct {
 	RedisAddr     string
 	RedisPassword string
 	RedisDB       int
+	JWTSecret     string
 }
 
 func Load() Config {
@@ -21,6 +22,7 @@ func Load() Config {
 		RedisAddr:     getEnv("REDIS_ADDR", "localhost:6379"),
 		RedisPassword: getEnv("REDIS_PASSWORD", ""),
 		RedisDB:       getEnvInt("REDIS_DB", 0),
+		JWTSecret:     getEnv("JWT_SECRET", "dev-secret-change-me"),
 	}
 }
 

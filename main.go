@@ -5,7 +5,11 @@ import (
 	"log"
 	"net/http"
 
+	"employee-management-system/auth"
 	"employee-management-system/config"
+	"employee-management-system/handlers"
+	"employee-management-system/middleware"
+	"employee-management-system/repository"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -37,7 +41,21 @@ func main() {
 		log.Fatalf("ping redis: %v", err)
 	}
 
+	userRepository := repository.NewUserRepository(postgresPool)
+	authService := auth.NewService(cfg.JWTSecret)
+	authHandler := handlers.NewAuthHandler(userRepository, authService)
+
 	router := gin.Default()
+	router.POST("/auth/signup", authHandler.Signup)
+	router.POST("/auth/login", authHandler.Login)
+	authorized := router.Group("/")
+	authorized.Use(middleware.JWT(cfg.JWTSecret))
+	authorized.GET("/me", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"user_id": c.GetInt64("user_id"),
+			"role":    c.GetString("role"),
+		})
+	})
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
