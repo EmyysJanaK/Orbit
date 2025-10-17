@@ -42,20 +42,32 @@ func main() {
 	}
 
 	userRepository := repository.NewUserRepository(postgresPool)
+	appointmentRepository := repository.NewAppointmentRepository(postgresPool)
 	authService := auth.NewService(cfg.JWTSecret)
 	authHandler := handlers.NewAuthHandler(userRepository, authService)
+	appointmentHandler := handlers.NewAppointmentHandler(appointmentRepository)
 
 	router := gin.Default()
 	router.POST("/auth/signup", authHandler.Signup)
 	router.POST("/auth/login", authHandler.Login)
-	authorized := router.Group("/")
-	authorized.Use(middleware.JWT(cfg.JWTSecret))
-	authorized.GET("/me", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"user_id": c.GetInt64("user_id"),
-			"role":    c.GetString("role"),
+	api := router.Group("/api")
+	api.Use(middleware.JWT(cfg.JWTSecret))
+	{
+		api.GET("/me", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{
+				"user_id": c.GetInt64("user_id"),
+				"role":    c.GetString("role"),
+			})
 		})
-	})
+		appointments := api.Group("/appointments")
+		{
+			appointments.POST("", appointmentHandler.Create)
+			appointments.GET("", appointmentHandler.List)
+			appointments.GET("/:id", appointmentHandler.Get)
+			appointments.PATCH("/:id", appointmentHandler.Patch)
+			appointments.DELETE("/:id", appointmentHandler.Delete)
+		}
+	}
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
