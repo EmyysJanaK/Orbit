@@ -3,10 +3,6 @@ package handlers
 import (
 	"bytes"
 	"context"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -16,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
+	"github.com/stripe/stripe-go/v81/webhook"
 )
 
 type fakeStripeWebhookRepository struct {
@@ -76,22 +73,20 @@ func TestStripeWebhookHandlerRejectsBadSignature(t *testing.T) {
 
 func performStripeWebhookRequest(t *testing.T, handler *StripeWebhookHandler, body []byte, secret string) *httptest.ResponseRecorder {
 	t.Helper()
+	signed := webhook.GenerateTestSignedPayload(&webhook.UnsignedPayload{
+		Payload:   body,
+		Secret:    secret,
+		Timestamp: time.Now().UTC(),
+		Scheme:    "v1",
+	})
 
 	recorder := httptest.NewRecorder()
 	router := gin.New()
 	router.POST("/api/webhooks/stripe", handler.Handle)
 
 	request := httptest.NewRequest(http.MethodPost, "/api/webhooks/stripe", bytes.NewReader(body))
-	request.Header.Set("Stripe-Signature", stripeSignature(body, secret, time.Unix(1710000000, 0)))
+	request.Header.Set("Stripe-Signature", signed.Header)
 	router.ServeHTTP(recorder, request)
 
 	return recorder
-}
-
-func stripeSignature(payload []byte, secret string, ts time.Time) string {
-	base := fmt.Sprintf("%d.%s", ts.Unix(), payload)
-	mac := hmac.New(sha256.New, []byte(secret))
-	_, _ = mac.Write([]byte(base))
-	signature := hex.EncodeToString(mac.Sum(nil))
-	return fmt.Sprintf("t=%d,v1=%s", ts.Unix(), signature)
 }
