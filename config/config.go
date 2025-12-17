@@ -7,22 +7,28 @@ import (
 )
 
 type Config struct {
-	ServerAddr    string
-	PostgresDSN   string
-	RedisAddr     string
-	RedisPassword string
-	RedisDB       int
-	JWTSecret     string
+	ServerAddr          string
+	PostgresDSN         string
+	RedisAddr           string
+	RedisPassword       string
+	RedisDB             int
+	JWTSecret           string
+	StripeSecretKey     string
+	StripeWebhookSecret string
+	StripeCurrency      string
 }
 
 func Load() Config {
 	return Config{
-		ServerAddr:    getEnv("APP_ADDR", ":8080"),
-		PostgresDSN:   buildPostgresDSN(),
-		RedisAddr:     getEnv("REDIS_ADDR", "localhost:6379"),
-		RedisPassword: getEnv("REDIS_PASSWORD", ""),
-		RedisDB:       getEnvInt("REDIS_DB", 0),
-		JWTSecret:     getEnv("JWT_SECRET", "dev-secret-change-me"),
+		ServerAddr:          getEnv("APP_ADDR", ":8080"),
+		PostgresDSN:         buildPostgresDSN(),
+		RedisAddr:           getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisPassword:       getEnv("REDIS_PASSWORD", ""),
+		RedisDB:             getEnvInt("REDIS_DB", 0),
+		JWTSecret:           getEnv("JWT_SECRET", "dev-secret-change-me"),
+		StripeSecretKey:     getEnv("STRIPE_SECRET_KEY", ""),
+		StripeWebhookSecret: getEnv("STRIPE_WEBHOOK_SECRET", ""),
+		StripeCurrency:      getEnv("STRIPE_CURRENCY", "usd"),
 	}
 }
 

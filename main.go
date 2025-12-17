@@ -8,12 +8,14 @@ import (
 	"employee-management-system/auth"
 	"employee-management-system/config"
 	"employee-management-system/handlers"
+	"employee-management-system/jobs"
 	"employee-management-system/middleware"
 	"employee-management-system/repository"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
+	"github.com/robfig/cron/v3"
 )
 
 func main() {
@@ -43,13 +45,32 @@ func main() {
 
 	userRepository := repository.NewUserRepository(postgresPool)
 	appointmentRepository := repository.NewAppointmentRepository(postgresPool)
+	paymentRepository := repository.NewPaymentRepository(postgresPool)
+	eventRepository := repository.NewEventRepository(postgresPool)
 	authService := auth.NewService(cfg.JWTSecret)
 	authHandler := handlers.NewAuthHandler(userRepository, authService)
 	appointmentHandler := handlers.NewAppointmentHandler(appointmentRepository)
+	paymentHandler := handlers.NewPaymentHandler(appointmentRepository, paymentRepository, cfg.StripeSecretKey)
+	stripeWebhookHandler := handlers.NewStripeWebhookHandler(paymentRepository, cfg.StripeWebhookSecret)
+	reminderJob := jobs.NewReminderJob(appointmentRepository, eventRepository)
+	cronScheduler := cron.New()
+	if _, err := cronScheduler.AddFunc("@hourly", func() {
+		if err := reminderJob.Run(context.Background()); err != nil {
+			log.Printf("reminder job failed: %v", err)
+		}
+	}); err != nil {
+		log.Fatalf("schedule reminder job: %v", err)
+	}
+	cronScheduler.Start()
+	defer func() {
+		ctx := cronScheduler.Stop()
+		<-ctx.Done()
+	}()
 
 	router := gin.Default()
 	router.POST("/auth/signup", authHandler.Signup)
 	router.POST("/auth/login", authHandler.Login)
+	router.POST("/api/webhooks/stripe", stripeWebhookHandler.Handle)
 	api := router.Group("/api")
 	api.Use(middleware.JWT(cfg.JWTSecret))
 	{
@@ -66,6 +87,10 @@ func main() {
 			appointments.GET("/:id", appointmentHandler.Get)
 			appointments.PATCH("/:id", appointmentHandler.Patch)
 			appointments.DELETE("/:id", appointmentHandler.Delete)
+		}
+		payments := api.Group("/payments")
+		{
+			payments.POST("/intent", paymentHandler.CreateIntent)
 		}
 	}
 	router.GET("/health", func(c *gin.Context) {

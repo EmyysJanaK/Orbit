@@ -133,6 +133,27 @@ func (r *AppointmentRepository) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
+func (r *AppointmentRepository) ListUpcomingWithPendingPayments(ctx context.Context, start, end time.Time) ([]models.Appointment, error) {
+	rows, err := r.pool.Query(
+		ctx,
+		`SELECT DISTINCT a.id, a.user_id, a.title, a.scheduled_at, a.status, a.created_at
+		 FROM appointments a
+		 INNER JOIN payments p ON p.appointment_id = a.id
+		 WHERE a.scheduled_at >= $1
+		   AND a.scheduled_at <= $2
+		   AND p.status = 'pending'
+		 ORDER BY a.scheduled_at ASC, a.id ASC`,
+		start,
+		end,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return scanAppointments(rows)
+}
+
 func scanAppointments(rows pgx.Rows) ([]models.Appointment, error) {
 	appointments := make([]models.Appointment, 0)
 	for rows.Next() {
