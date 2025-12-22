@@ -214,3 +214,20 @@ func (r *PaymentRepository) ListPendingPaymentAppointments(ctx context.Context, 
 
 	return appointments, nil
 }
+
+func (r *PaymentRepository) TotalSuccessfulRevenueSince(ctx context.Context, since time.Time) (int64, error) {
+	var revenue int64
+	err := r.pool.QueryRow(
+		ctx,
+		`SELECT COALESCE(SUM(amount), 0)
+		 FROM payments
+		 WHERE status = 'succeeded'
+		   AND created_at >= $1`,
+		since,
+	).Scan(&revenue)
+	if err != nil {
+		return 0, err
+	}
+
+	return revenue, nil
+}

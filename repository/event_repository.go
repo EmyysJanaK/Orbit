@@ -14,6 +14,8 @@ type EventRepository struct {
 	pool *pgxpool.Pool
 }
 
+var ErrEventNotFound = errors.New("event not found")
+
 func NewEventRepository(pool *pgxpool.Pool) *EventRepository {
 	return &EventRepository{pool: pool}
 }
@@ -52,6 +54,18 @@ func (r *EventRepository) EnsureCreated(ctx context.Context, event models.Event)
 	}
 
 	return created, nil
+}
+
+func (r *EventRepository) DeleteByID(ctx context.Context, id int64) error {
+	result, err := r.pool.Exec(ctx, `DELETE FROM events WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return ErrEventNotFound
+	}
+
+	return nil
 }
 
 var ErrEventRepositoryUnavailable = errors.New("event repository unavailable")

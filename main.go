@@ -51,6 +51,8 @@ func main() {
 	authHandler := handlers.NewAuthHandler(userRepository, authService)
 	appointmentHandler := handlers.NewAppointmentHandler(appointmentRepository)
 	paymentHandler := handlers.NewPaymentHandler(appointmentRepository, paymentRepository, cfg.StripeSecretKey)
+	eventHandler := handlers.NewEventHandler(eventRepository, redisClient)
+	analyticsHandler := handlers.NewAnalyticsHandler(redisClient, paymentRepository)
 	stripeWebhookHandler := handlers.NewStripeWebhookHandler(paymentRepository, cfg.StripeWebhookSecret)
 	reminderJob := jobs.NewReminderJob(appointmentRepository, eventRepository)
 	cronScheduler := cron.New()
@@ -92,6 +94,8 @@ func main() {
 		{
 			payments.POST("/intent", paymentHandler.CreateIntent)
 		}
+		api.POST("/events", eventHandler.Create)
+		api.GET("/analytics/summary", analyticsHandler.Summary)
 	}
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
