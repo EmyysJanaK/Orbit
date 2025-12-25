@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strconv"
@@ -14,7 +15,16 @@ import (
 )
 
 type AppointmentHandler struct {
-	Appointments *repository.AppointmentRepository
+	Appointments appointmentRepository
+}
+
+type appointmentRepository interface {
+	Create(ctx context.Context, appointment models.Appointment) (models.Appointment, error)
+	ListByUser(ctx context.Context, userID int64) ([]models.Appointment, error)
+	ListAll(ctx context.Context) ([]models.Appointment, error)
+	GetByID(ctx context.Context, id int64) (models.Appointment, error)
+	Update(ctx context.Context, appointment models.Appointment) (models.Appointment, error)
+	Delete(ctx context.Context, id int64) error
 }
 
 type appointmentCreateRequest struct {
@@ -29,7 +39,7 @@ type appointmentPatchRequest struct {
 	Status      *string `json:"status"`
 }
 
-func NewAppointmentHandler(repo *repository.AppointmentRepository) *AppointmentHandler {
+func NewAppointmentHandler(repo appointmentRepository) *AppointmentHandler {
 	return &AppointmentHandler{Appointments: repo}
 }
 

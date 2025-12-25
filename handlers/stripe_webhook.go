@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -16,8 +17,12 @@ import (
 )
 
 type StripeWebhookHandler struct {
-	Payments      *repository.PaymentRepository
+	Payments      stripeWebhookRepository
 	WebhookSecret string
+}
+
+type stripeWebhookRepository interface {
+	ProcessStripeWebhookEvent(ctx context.Context, stripeEventID, eventType string, payment models.Payment) (bool, error)
 }
 
 func NewStripeWebhookHandler(payments *repository.PaymentRepository, webhookSecret string) *StripeWebhookHandler {
