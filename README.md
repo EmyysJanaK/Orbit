@@ -1,4 +1,4 @@
-# Employee Management System
+# 
 
 A Go API for managing users, appointments, payments, usage analytics, and Stripe-backed payment workflows.
 
