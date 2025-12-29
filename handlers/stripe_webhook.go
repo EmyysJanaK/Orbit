@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"employee-management-system/models"
-	"employee-management-system/repository"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stripe/stripe-go/v81"
@@ -25,7 +24,7 @@ type stripeWebhookRepository interface {
 	ProcessStripeWebhookEvent(ctx context.Context, stripeEventID, eventType string, payment models.Payment) (bool, error)
 }
 
-func NewStripeWebhookHandler(payments *repository.PaymentRepository, webhookSecret string) *StripeWebhookHandler {
+func NewStripeWebhookHandler(payments stripeWebhookRepository, webhookSecret string) *StripeWebhookHandler {
 	return &StripeWebhookHandler{Payments: payments, WebhookSecret: webhookSecret}
 }
 

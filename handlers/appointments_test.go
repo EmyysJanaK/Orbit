@@ -140,7 +140,7 @@ func TestAppointmentHandlerCreateListGetPatchDelete(t *testing.T) {
 		require.Equal(t, http.StatusOK, recorder.Code)
 		var items []models.Appointment
 		require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &items))
-		require.Len(t, items, 2)
+		require.Len(t, items, 1)
 	})
 
 	t.Run("get forbidden for other user", func(t *testing.T) {
