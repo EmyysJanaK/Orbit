@@ -1,7 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="V1__Create_employee_table.sql" type="DatabaseScript" editBeforeRun="true" nameIsGenerated="true">
-    <script-file value="$PROJECT_DIR$/java-app/src/main/resources/db/migration/V1__Create_employee_table.sql" />
-    <script-mode>FILE</script-mode>
-    <method v="2" />
-  </configuration>
-</component>
