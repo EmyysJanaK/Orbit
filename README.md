@@ -8,7 +8,7 @@ The project is split into two main directories:
 - `backend/`: A Go/Gin API handling business logic, Postgres database connections, Stripe webhooks, and Redis analytics.
 - `frontend/`: A Next.js (App Router) web application using Tailwind CSS and TanStack Query to interface with the backend.
 
-```mermaid
+<!-- ```mermaid
 flowchart LR
     Client[Next.js Frontend] --> Gin[Gin API]
     Gin --> Auth[JWT Middleware]
@@ -24,7 +24,7 @@ flowchart LR
     PaymentRepo --> Postgres
     EventRepo --> Postgres
     Redis --> Summary[Analytics Summary]
-```
+``` -->
 
 ## Prerequisites
 
