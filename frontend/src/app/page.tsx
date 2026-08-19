@@ -1,3 +1,4 @@
+import Link from "next/link";
 import HeroSection from "@/components/HeroSection";
 import FeaturesSection from "@/components/FeaturesSection";
 import CallToAction from "@/components/CallToAction";
@@ -13,12 +14,12 @@ export default function Home() {
             ORBIT
           </div>
           <div className="flex gap-4 items-center">
-            <button className="px-5 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors">
+            <Link href="/login" className="px-5 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors">
               Login
-            </button>
-            <button className="px-5 py-2 text-sm font-medium bg-white text-black rounded-full hover:bg-gray-200 transition-colors">
+            </Link>
+            <Link href="/signup" className="px-5 py-2 text-sm font-medium bg-white text-black rounded-full hover:bg-gray-200 transition-colors">
               Sign Up
-            </button>
+            </Link>
           </div>
         </div>
       </nav>

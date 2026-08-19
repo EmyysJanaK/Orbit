@@ -70,6 +70,7 @@ func main() {
 	}()
 
 	router := gin.Default()
+	router.Use(middleware.CORS())
 	router.POST("/auth/signup", authHandler.Signup)
 	router.POST("/auth/login", authHandler.Login)
 	router.POST("/api/webhooks/stripe", stripeWebhookHandler.Handle)
