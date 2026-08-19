@@ -1,12 +1,16 @@
-# 
+# Orbit Employee Management System
 
-A Go API for managing users, appointments, payments, usage analytics, and Stripe-backed payment workflows.
+A monorepo containing a Go API backend and a Next.js React frontend for managing users, appointments, payments, usage analytics, and Stripe-backed payment workflows.
 
 ## Architecture
 
+The project is split into two main directories:
+- `backend/`: A Go/Gin API handling business logic, Postgres database connections, Stripe webhooks, and Redis analytics.
+- `frontend/`: A Next.js (App Router) web application using Tailwind CSS and TanStack Query to interface with the backend.
+
 ```mermaid
 flowchart LR
-    Client[Client / Stripe CLI] --> Gin[Gin API]
+    Client[Next.js Frontend] --> Gin[Gin API]
     Gin --> Auth[JWT Middleware]
     Auth --> AppHandlers[Handlers]
     AppHandlers --> AppRepo[Postgres Repositories]
@@ -25,75 +29,68 @@ flowchart LR
 ## Prerequisites
 
 - Go 1.25+
+- Node.js 20+
 - Docker and Docker Compose
 - Stripe account with test mode enabled
 - Stripe CLI for webhook testing
 
-## Setup
+## Setup & Running Locally
 
-1. Copy the environment file and fill in local values:
+### 1. Infrastructure (Database & Cache)
 
-   ```bash
-   cp .env.example .env
-   ```
+Start Postgres and Redis from the root directory:
 
-2. Start Postgres and Redis:
+```bash
+docker-compose up -d
+```
 
-   ```bash
-   docker-compose up -d
-   ```
+### 2. Backend API Setup
 
-3. Run the database migrations in order:
+Navigate to the backend directory and set up your environment:
 
-   ```bash
-   psql "$POSTGRES_DSN" -f migrations/0001_init.up.sql
-   psql "$POSTGRES_DSN" -f migrations/0002_stripe_payments_webhooks.up.sql
-   ```
+```bash
+cd backend
+cp .env.example .env
+```
 
-   If you prefer a manual DSN, use the values from `.env` and connect to the `employee_management` database.
+Run the database migrations in order:
 
-4. Run the API:
+```bash
+psql "$POSTGRES_DSN" -f migrations/0001_init.up.sql
+psql "$POSTGRES_DSN" -f migrations/0002_stripe_payments_webhooks.up.sql
+```
 
-   ```bash
-   go run .
-   ```
+Run the API:
 
-5. Run the test suite:
+```bash
+go run .
+```
 
-   ```bash
-   go test ./...
-   ```
+### 3. Frontend Setup
+
+In a new terminal, navigate to the frontend directory:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend will be available at `http://localhost:3000`.
 
 ## Webhook Testing
 
-Use the Stripe CLI to forward test-mode webhook events to the local API:
+Use the Stripe CLI to forward test-mode webhook events to the local backend API:
 
 ```bash
 stripe login
 stripe listen --forward-to localhost:8080/api/webhooks/stripe
 ```
 
-The CLI prints a webhook signing secret. Set that value as `STRIPE_WEBHOOK_SECRET` in `.env`.
+The CLI prints a webhook signing secret. Set that value as `STRIPE_WEBHOOK_SECRET` in `backend/.env`.
 
 Then trigger a test payment flow or send a test event, for example:
 
 ```bash
 stripe trigger payment_intent.succeeded
 ```
-
-## API Overview
-
-- `POST /auth/signup`
-- `POST /auth/login`
-- `GET /health`
-- `POST /api/appointments`
-- `GET /api/appointments`
-- `GET /api/appointments/:id`
-- `PATCH /api/appointments/:id`
-- `DELETE /api/appointments/:id`
-- `POST /api/payments/intent`
-- `POST /api/webhooks/stripe`
-- `POST /api/events`
-- `GET /api/analytics/summary`
-
-The `/api/*` routes require a valid JWT, and `/api/analytics/summary` is admin-only.
