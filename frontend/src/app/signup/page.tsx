@@ -23,7 +23,7 @@ export default function SignupPage() {
     onSuccess: (data) => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-      router.push("/"); // Redirect home for now
+      router.push("/dashboard");
     },
     onError: (error: any) => {
       setErrorMsg(error.response?.data?.error || "An error occurred during sign up");

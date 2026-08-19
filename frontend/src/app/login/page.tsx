@@ -22,8 +22,7 @@ export default function LoginPage() {
     onSuccess: (data) => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-      // Temporarily redirect home since we don't have a dashboard yet
-      router.push("/"); 
+      router.push("/dashboard"); 
     },
     onError: (error: any) => {
       setErrorMsg(error.response?.data?.error || "An error occurred during login");
