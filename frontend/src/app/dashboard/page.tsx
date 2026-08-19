@@ -11,10 +11,12 @@ import {
   CheckCircle, 
   Clock, 
   Loader2,
+  CreditCard,
   User as UserIcon 
 } from "lucide-react";
 import api from "@/lib/api";
 import CreateAppointmentModal from "@/components/CreateAppointmentModal";
+import StripePaymentModal from "@/components/StripePaymentModal";
 import Link from "next/link";
 
 interface Appointment {
@@ -31,6 +33,24 @@ export default function DashboardPage() {
   const queryClient = useQueryClient();
   const [user, setUser] = useState<{ email: string; role: string } | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Stripe Payment Modal State
+  const [paymentModalData, setPaymentModalData] = useState<{
+    isOpen: boolean;
+    clientSecret: string;
+    appointmentTitle: string;
+    amount: number;
+    currency: string;
+  }>({
+    isOpen: false,
+    clientSecret: "",
+    appointmentTitle: "",
+    amount: 5000, // $50.00 default
+    currency: "usd",
+  });
+
+  const [paymentErrorMsg, setPaymentErrorMsg] = useState("");
+  const [payingAppointmentId, setPayingAppointmentId] = useState<number | null>(null);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -70,6 +90,35 @@ export default function DashboardPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
+    },
+  });
+
+  // Stripe Payment Intent Mutation
+  const paymentIntentMutation = useMutation({
+    mutationFn: async (appointment: Appointment) => {
+      setPayingAppointmentId(appointment.id);
+      setPaymentErrorMsg("");
+      const { data } = await api.post("/api/payments/intent", {
+        appointment_id: appointment.id,
+        amount: 5000, // $50.00 USD
+        currency: "usd",
+      });
+      return { data, appointment };
+    },
+    onSuccess: ({ data, appointment }) => {
+      setPayingAppointmentId(null);
+      setPaymentModalData({
+        isOpen: true,
+        clientSecret: data.client_secret,
+        appointmentTitle: appointment.title,
+        amount: 5000,
+        currency: "usd",
+      });
+    },
+    onError: (error: any) => {
+      setPayingAppointmentId(null);
+      const msg = error.response?.data?.error || "Could not initiate payment. Make sure STRIPE_SECRET_KEY is configured in backend.";
+      alert(msg);
     },
   });
 
@@ -226,7 +275,21 @@ export default function DashboardPage() {
                           <option value="cancelled">Cancelled</option>
                         </select>
                       </td>
-                      <td className="p-4 pr-6 text-right">
+                      <td className="p-4 pr-6 text-right flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => paymentIntentMutation.mutate(item)}
+                          disabled={payingAppointmentId === item.id}
+                          className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                          title="Pay via Stripe"
+                        >
+                          {payingAppointmentId === item.id ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <CreditCard size={14} />
+                          )}
+                          Pay $50
+                        </button>
+                        
                         <button
                           onClick={() => deleteMutation.mutate(item.id)}
                           className="p-2 text-gray-400 hover:text-red-400 transition-colors"
@@ -247,6 +310,18 @@ export default function DashboardPage() {
       <CreateAppointmentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+      />
+
+      <StripePaymentModal
+        isOpen={paymentModalData.isOpen}
+        clientSecret={paymentModalData.clientSecret}
+        appointmentTitle={paymentModalData.appointmentTitle}
+        amount={paymentModalData.amount}
+        currency={paymentModalData.currency}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["appointments"] });
+        }}
+        onClose={() => setPaymentModalData((prev) => ({ ...prev, isOpen: false }))}
       />
     </div>
   );

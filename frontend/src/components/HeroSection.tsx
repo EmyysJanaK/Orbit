@@ -20,9 +20,9 @@ export default function HeroSection() {
             </span>
             Orbit v2.0 is now live
           </div>
-          
+
           <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight mb-8">
-            Manage your workforce with <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Orbit</span>
+            Manage Your Workforce with <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Orbit</span>
           </h1>
           <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed">
             The all-in-one platform for appointments, analytics, and seamless Stripe payments. Built specifically for modern teams.
@@ -37,7 +37,7 @@ export default function HeroSection() {
           </div>
         </motion.div>
       </div>
-      
+
       {/* Background ambient glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
     </section>
