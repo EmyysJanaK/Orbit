@@ -21,7 +21,7 @@ export default function HeroSection() {
             Orbit v2.0 is now live
           </div>
 
-          <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight mb-8">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold font-serif tracking-tight mb-8">
             Manage Your Workforce with <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Orbit</span>
           </h1>
           <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed">
