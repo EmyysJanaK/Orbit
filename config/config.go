@@ -29,6 +29,7 @@ func Load() Config {
 		StripeSecretKey:     getEnv("STRIPE_SECRET_KEY", ""),
 		StripeWebhookSecret: getEnv("STRIPE_WEBHOOK_SECRET", ""),
 		StripeCurrency:      getEnv("STRIPE_CURRENCY", "usd"),
+		ScheduledAt:         getEnv("SCHEDULED_AT", "18:00"),
 	}
 }
 
