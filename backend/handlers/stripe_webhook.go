@@ -1,4 +1,4 @@
-package handlers
+﻿package handlers
 
 import (
 	"context"
@@ -41,7 +41,9 @@ func (h *StripeWebhookHandler) Handle(c *gin.Context) {
 		return
 	}
 
-	event, err := webhook.ConstructEvent(payload, signature, h.WebhookSecret)
+	event, err := webhook.ConstructEventWithOptions(payload, signature, h.WebhookSecret, webhook.ConstructEventOptions{
+		IgnoreAPIVersionMismatch: true,
+	})
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid stripe signature"})
 		return
@@ -56,6 +58,16 @@ func (h *StripeWebhookHandler) Handle(c *gin.Context) {
 	var paymentIntent stripe.PaymentIntent
 	if len(event.Data.Raw) > 0 {
 		if err := json.Unmarshal(event.Data.Raw, &paymentIntent); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payment intent payload"})
+			return
+		}
+	} else if event.Data.Object != nil {
+		rawObj, err := json.Marshal(event.Data.Object)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payment intent payload"})
+			return
+		}
+		if err := json.Unmarshal(rawObj, &paymentIntent); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payment intent payload"})
 			return
 		}

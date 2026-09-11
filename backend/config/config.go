@@ -1,4 +1,4 @@
-package config
+﻿package config
 
 import (
 	"fmt"
@@ -16,6 +16,7 @@ type Config struct {
 	StripeSecretKey     string
 	StripeWebhookSecret string
 	StripeCurrency      string
+	ScheduledAt         string
 }
 
 func Load() Config {
